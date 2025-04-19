@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AlzoMX: Monitor </title>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+  
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #0a0a0a;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+  
+    html, body {
+      width: 100%;
+      height: 100%;
+    }
+
+    #header {
+      background-color: #141414;
+      padding: 16px 24px;
+      font-size: 24px;
+      font-weight: 600;
+      z-index: 1;
+      position: sticky;
+      top: 0;
+      width: 100%;
+    }
+
+    #content {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      width: 100vw;
+      height: calc(100vh - 72px); /* Ajusta según el alto del header */
+    }
+
+    #map {
+  flex: 2;
+  height: 100%; /* Usa 100% del espacio restante */
+  width: 100%;
+}
+  
+    #lista-eventos {
+      flex: 1;
+      background-color: #0e0e0e;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .eventos-scroll {
+      overflow-y: auto;
+      padding: 0 20px 20px;
+      flex: 1;
+      scroll-behavior: smooth;
+    }
+
+    .eventos-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    h2 {
+      margin: 20px 20px 10px;
+      font-size: 20px;
+      font-weight: 600;
+      border-bottom: 2px solid #333;
+      padding-bottom: 10px;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    h2.hidden {
+      transform: translateY(-20px);
+      opacity: 0;
+    }
+
+    .earthquake-item {
+      display: flex;
+      margin-bottom: 12px;
+      background-color: #121212;
+      border-radius: 8px;
+      padding: 12px;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      transition: transform 0.2s ease;
+      cursor: pointer;
+    }
+
+    .earthquake-item:hover {
+      transform: scale(1.02);
+    }
+
+    .magnitude {
+      font-size: 22px;
+      font-weight: bold;
+      min-width: 60px;
+      min-height: 60px;
+      line-height: 60px;
+      text-align: center;
+      border-radius: 50%;
+      margin-right: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #222;
+    }
+
+    .magnitude-imperceptible {
+      color: #00bda4;
+    }
+
+    .magnitude-leve {
+      color: #00c3ff;
+    }
+
+    .magnitude-moderada {
+      color: #ffc400;
+    }
+
+    .magnitude-fuerte {
+      color: #ff5c33;
+    }
+
+    .magnitude-violento {
+      color: #e60073;
+    }
+
+    strong {
+      color: #ccc;
+    }
+
+    .header-btn {
+      background-color: #1b1b1b;
+      border: 2px solid transparent;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 10px 10px;
+      border-radius: 8px;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header-btn::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      transition: left 0.3s ease;
+      z-index: 0;
+    }
+
+    .header-btn:hover::after {
+      left: 0;
+    }
+
+    .header-btn:hover {
+      border-color: #444;
+      background-color: #262626;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    .header-btn:active {
+      transform: scale(0.96);
+      box-shadow: none;
+    }
+
+    .live-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background-color: red;
+      box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7);
+      }
+      70% {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 10px rgba(255, 0, 0, 0);
+      }
+      100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
+      }
+    }
+
+    #locate-btn {
+      position: absolute;
+      right: 20px;
+      bottom: 30px;
+      width: 56px;
+      height: 56px;
+      background-color: #1e1e1e;
+      border-radius: 50%;
+      border: none;
+      color: #bbbbbb;
+      font-size: 28px;
+      cursor: pointer;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    #locate-btn:hover {
+      background-color: #2a2a2a;
+      transform: scale(1.05);
+    }
+
+    #close-dialog {
+    background-color: #161616; /* Fondo inicial más oscuro */
+    border: 2px solid transparent;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 10px 10px;
+    border-radius: 8px;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  #close-dialog::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    transition: left 0.3s ease;
+    z-index: 0;
+  }
+
+  #close-dialog:hover::after {
+    left: 0;
+  }
+
+  #close-dialog:hover {
+    border-color: #444;
+    background-color: #1e1e1e; /* Fondo más oscuro al hacer hover */
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  }
+
+  #close-dialog:active {
+    transform: scale(0.96);
+    box-shadow: none;
+    background-color: #333; /* Fondo más oscuro al hacer clic */
+  }
+  </style>
+</head>
+<body>
+
+  <button id="locate-btn">
+    <span class="material-icons">my_location</span>
+  </button>
+  <div id="header">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <div style="display: flex; align-items: center; gap: 18px;">
+        <div class="live-dot"></div>
+        <div style="font-size: 20px; font-weight: 600;">Monitor AlzoMX</div>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button class="header-btn"><span class="material-icons">home</span></button>
+        <button class="header-btn"><span class="material-icons">map</span></button>
+        <button class="header-btn"><span class="material-icons">info</span></button>
+      </div>
+    </div>
+  </div>
+
+  <div id="content">
+    <div id="lista-eventos">
+  <div style="flex: 0.4;      background-color: #0e0e0e; padding: 16px; border-bottom: 1px solid #333;">
+
+    <style>
+      .user-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 18px 24px;
+        border-radius: 18px;
+        background: linear-gradient(135deg, #101010, #191919);
+        color: #d0d0d0;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+      }
+    
+      .divicon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background-color: #1a1a1a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.03);
+      }
+    
+      .divicon i {
+        font-size: 34px;
+      }
+    
+      .user-details {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+    
+      .user-info {
+        font-size: 20px;
+        font-weight: 600;
+        color: #f5f5f5;
+      }
+    
+      .status {
+        font-size: 14px;
+        color: #888;
+      }
+    </style>
+    
+    <div class="user-item">
+      <div class="divicon">
+        <i class="material-icons">account_circle</i>
+      </div>
+      <div class="user-details">
+        <div class="user-info">Bienvenido, Usuario de AlzoMX</div>
+        <div class="status">Sin actividad sísmica en este momento</div>
+      </div>
+    </div>
+    
+
+
+  </div>
+  <div id="scroll" class="eventos-scroll">
+    <div style="margin-top: 15px;" id="list"></div>
+  </div>
+</div>
+    <div id="map"></div>
+  </div>
+
+  <script>
+    let userMarker = null;
+    let showingLocation = false;
+
+    document.getElementById('locate-btn').addEventListener('click', () => {
+      if (!showingLocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+          const { latitude, longitude } = pos.coords;
+
+          if (userMarker) userMarker.remove();
+
+          userMarker = new mapboxgl.Marker({ color: '#00ff88' })
+            .setLngLat([longitude, latitude])
+            .addTo(map);
+
+          map.flyTo({
+            center: [longitude, latitude],
+            zoom: 6,
+            speed: 1.2,
+            curve: 1,
+            essential: true
+          });
+
+          showingLocation = true;
+        });
+      } else {
+        if (userMarker) userMarker.remove();
+        userMarker = null;
+        showingLocation = false;
+      }
+    });
+
+    const getAfectacion = (mag) => {
+      if (mag >= 7.5) return 'Crítica';
+      if (mag >= 6.5) return 'Importante';
+      if (mag >= 5.5) return 'Muy leve';
+      if (mag >= 4.5) return 'Ninguna';
+      return 'Sin Afectación';
+    };
+
+    mapboxgl.accessToken = 'pk.eyJ1Ijoic3NteCIsImEiOiJjbTlqYXNybmswOWFlMmpxNHdmc3RjbWg1In0.14A97LZ66g7nsoA-NA_9Fw';
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/satellite-streets-v10',
+      center: [-99.1304, 19.4730],
+      zoom: 5.5,
+      attributionControl: false
+    });
+
+    map.addControl(new mapboxgl.AttributionControl({
+      customAttribution: 'AlzoMX'
+    }));
+
+    map.on('load', () => {
+      map.addSource('plates', {
+        type: 'geojson',
+        data: 'https://raw.githubusercontent.com/AlzoMX/AlzoMX/main/plates.json'
+      });
+
+      map.addLayer({
+        id: 'plates',
+        type: 'line',
+        source: 'plates',
+        paint: {
+          'line-color': '#FF9F33',
+          'line-width': 4
+        }
+      });
+
+      fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson')
+        .then(res => res.json())
+        .then(data => {
+          map.addSource('earthquakes', {
+            type: 'geojson',
+            data: data
+          });
+
+          map.addLayer({
+            id: 'earthquake-circles',
+            type: 'circle',
+            source: 'earthquakes',
+            paint: {
+              'circle-color': [
+                'interpolate',
+                ['linear'],
+                ['get', 'mag'],
+                4.5, '#00c3ff',
+                5.5, '#ffc400',
+                6.5, '#ff5c33',
+                7.5, '#e60073'
+              ],
+              'circle-radius': [
+                'interpolate',
+                ['linear'],
+                ['get', 'mag'],
+                4.5, 20,
+                5.5, 27,
+                6.5, 37,
+                7.5, 45
+              ],
+              'circle-opacity': 0.5
+            }
+          });
+
+          map.on('click', 'earthquake-circles', (e) => {
+            const coordinates = e.features[0].geometry.coordinates.slice();
+            map.flyTo({
+              center: [coordinates[0], coordinates[1]],
+              zoom: 7,
+              speed: 1.2,
+              curve: 1,
+              essential: true
+            });
+          });
+
+          data.features.forEach(eq => {
+            const [lng, lat] = eq.geometry.coordinates;
+            const mag = eq.properties.mag;
+            const afectacion = getAfectacion(mag);
+            const place = eq.properties.place;
+            const time = new Date(eq.properties.time).toLocaleString();
+            const depth = eq.geometry.coordinates[2].toFixed(1);
+
+            let magnitudeClass = 'magnitude-imperceptible';
+            if (mag >= 4.5 && mag < 5.5) magnitudeClass = 'magnitude-leve';
+            else if (mag >= 5.5 && mag < 6.5) magnitudeClass = 'magnitude-moderada';
+            else if (mag >= 6.5 && mag < 7.5) magnitudeClass = 'magnitude-fuerte';
+            else if (mag >= 7.5) magnitudeClass = 'magnitude-violento';
+
+            const div = document.createElement('div');
+            div.className = 'earthquake-item';
+            div.innerHTML = `
+              <div class="magnitude ${magnitudeClass}">${mag.toFixed(1)}</div>
+              <div>
+                <div style="font-size: 18px; font-weight: 600;">${place}</div>
+                <strong>Fecha y Hora:</strong> ${time} (UTC)
+                
+                                <strong>Profundidad:</strong> ${depth} km
+
+                
+                 <strong>Riesgo:</strong> ${afectacion}
+              </div>
+            `;
+            div.addEventListener('click', () => {
+              map.flyTo({
+                center: [lng, lat],
+                zoom: 7,
+                speed: 1.2,
+                curve: 1,
+                essential: true
+              });
+            });
+            document.getElementById('list').appendChild(div);
+          });
+        });
+    });
+
+
+  </script>
+<dialog id="info-dialog" style="border: none; background: transparent; padding: 0;">
+  <div id="dialog-box" style="background-color: #111111; color: white; padding: 24px; border-radius: 12px; min-width: 300px; max-width: 500px; width: 100%; margin: auto;">
+    <h2 style="margin-top: 0; font-size: 22px; text-align: left; width: 100%; margin-left: 0;">Información y Créditos</h2>
+    <p style="margin: 20px 0 24px; white-space: pre-line;">Este sitio web no es un servicio de alerta sísmica ni pretende sustituirlo. Ofrece información complementaria sobre avisos y actividad sísmica en México y el mundo (solo en zonas con cobertura).
+
+Créditos: Información proporcionada por USGS, Mas información en: https://earthquake.usgs.gov/fdsnws/event/1/
+
+Aviso legal: Este sitio no garantiza la precisión de la información. No se hace responsable de daños derivados de decisiones basadas en los datos proporcionados. Los usuarios son responsables de verificar la exactitud de la información. Los retrasos pueden ocurrir debido al tráfico de la red de internet. Pueden presentarse retrasos debido al tráfico de la red de internet.
+    </p>
+    
+    <button id="close-dialog" class="header-btn">Aceptar</button>
+  </div>
+</dialog>
+
+
+<style>
+  dialog::backdrop {
+    background: rgba(0, 0, 0, 0.6);
+    transition: background 0.2s ease;
+  }
+
+  .hide-backdrop::backdrop {
+    background: rgba(0, 0, 0, 0);
+  }
+
+  #dialog-box {
+    opacity: 0;
+    transform: scale(0.98);
+    animation: fadeIn 0.2s ease forwards;
+  }
+
+  @keyframes fadeIn {
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .fade-out {
+    animation: fadeOut 0.2s ease forwards;
+  }
+
+  @keyframes fadeOut {
+    to {
+      opacity: 0;
+      transform: scale(0.98);
+    }
+  }
+</style>
+
+
+
+<script>
+  const dialog = document.getElementById('info-dialog');
+  const dialogBox = document.getElementById('dialog-box');
+  const closeBtn = document.getElementById('close-dialog');
+
+  document.querySelectorAll('.header-btn .material-icons').forEach(icon => {
+    if (icon.textContent === 'info') {
+      icon.parentElement.addEventListener('click', () => {
+        dialog.showModal();
+      });
+    }
+  });
+
+  closeBtn.addEventListener('click', () => {
+    dialogBox.classList.add('fade-out');
+    dialog.classList.add('hide-backdrop');
+    setTimeout(() => {
+      dialog.close();
+      dialogBox.classList.remove('fade-out');
+      dialog.classList.remove('hide-backdrop');
+    }, 200);
+  });
+</script>
+
+
+
+</body>
+</html>
