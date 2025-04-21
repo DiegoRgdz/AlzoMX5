@@ -250,13 +250,13 @@ body {
 <div id="navbar">
   <a href="#default" id="logo"><img src="https://raw.githubusercontent.com/AlzoMX/AlzoMX/main/Web/Resources/image%20(6)%20(3)%20(1).png" alt="AlzoMX Logo"></a>
   <div id="navbar-right">
-    <a class="active" href="AlzoMX5HomeView.html">Inicio</a>
+    <a class="active" href="#inicio">Inicio</a>
     <a href="#apps">Apps</a>
     <a href="AlzoMX5FormRecieverProfile.html" id="monitor-link">Monitor</a>
     <a href="#about">Acerca de</a>
   </div>
 </div>
-<div style="margin-top:0px; padding-top: 200px; padding-bottom:70px;font-size:30px; background-image: linear-gradient(to right, rgb(0, 46, 114), rgb(0, 17, 43));">
+<div id="inicio" style="margin-top:0px; padding-top: 200px; padding-bottom:70px;font-size:30px; background-image: linear-gradient(to right, rgb(0, 46, 114), rgb(0, 17, 43));">
   <h1 class="AlzoTitle" style="margin: 0; color: white; font-weight: 500; font-size: 55px; margin-bottom: 20px; padding-top: 79px;">🚨 ¡Acabo la espera! AlzoMX 5.0 es una realidad.</h1>    
   <p class="AlzoText" style="margin: 0; color: white; font-size: 25px; padding-bottom: 79px; text-align: justify;">Descubre todas las novedades que hemos desarrollado para una mejor comodidad y seguridad, con un monitor completamente nuevo, incorporado con funciones de IA, mayor tecnologia y comodidad para el usuario.</p>
 </div>
@@ -289,23 +289,37 @@ body {
   </div>
 </div>
 
-<div id="apps" style="margin-top:0px;;font-size:30px; background-image: linear-gradient(to right, rgb(10, 10, 10), rgb(5, 5, 5));">
-  <h1 class="AlzoTitle" style="margin: 0; color: white; font-weight: 500; font-size: 40px; margin-bottom: 20px; padding-top: 79px;">Informarte de fenomenos naturales y salvaguardate es nuestra mision</h1>    
-  <p class="AlzoText" style="margin: 0; color: white; font-size: 15px; padding-bottom: 79px; text-align: justify;">Disponemos de una amplia variedad de canales a través de los cuales informamos sobre eventos sísmicos, alertas meteorológicas, eventos volcánicos y otros fenómenos naturales. Esto incluye bases de datos para información sísmica (Solicitar Convenio Aquí). A continuación, se presenta un listado de los medios disponibles para mantenerte informado.</p>
-</div>
+<div id="apps" style="display: flex; align-items: center; justify-content: space-between; gap: 60px; margin-top: 0px; font-size: 30px; background: linear-gradient(to right, #072C2B, #031117); padding: 80px 60px; border-radius: 24px;">
+    <div style="flex: 0.7; display: flex; flex-direction: column; gap: 30px;">
+      <h1 class="AlzoTitle" style="margin: 0; color: #ffffff; font-weight: 600; font-size: 58px;">Nuevo monitor impulsado con IA.</h1>    
+      <p class="AlzoText" style="margin: 0; color: #dddddd; font-size: 23px; line-height: 1.6; text-align: justify;">
+        Nuestro monitor completamente renovado permite la visualización de información sísmica de todo el mundo en un solo punto, reuniendo datos y generando resúmenes periódicos con IA.
+        <br><br>
+        El monitor AlzoMX es un servicio gratuito donde se reúne la informacion de varias agencias sismicas, permitiendo filtrar eventos sísmicos pasados con un catálogo de la USGS desde 1980.
+      </p>
+    </div>
+    <div style="flex: 0.55;">
+      <img src="https://raw.githubusercontent.com/AlzoMX/AlzoMX5/refs/heads/main/AlzoMXMonitor.png" alt="Monitor AlzoMX" style="width: 100%; height: auto; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); object-fit: cover;">
+    </div>
+  </div>
+  
+  
+  <dialog id="info-dialog" style="border: none; background: transparent; padding: 0;">
+    <div id="dialog-box" style="background-color: #111111; color: white; padding: 24px; border-radius: 12px; min-width: 300px; max-width: 500px; width: 100%; margin: auto;">
+        <h2 style="margin-top: 0; font-size: 22px; font-weight: 600; text-align: left; width: 100%; margin-left: 0;">Aviso importante</h2>
+        <hr>
+      <p style="margin: 20px 0 24px; white-space: pre-line;">Estás a punto de ser redirigido a Monitor AlzoMX. Este monitor está en fase de pruebas, por lo que puedes experimentar problemas de lentitud o fallas en la interfaz de usuario.
+  
+        Cada usuario es responsable de verificar la información y asume la responsabilidad de las consecuencias que pueda causar si toma decisiones basadas en nuestros servicios y sitio web.
+      </p>
+      
+      <div class="button-container">
+        <button id="close-dialog" class="header-btn">Aceptar</button>
+        <button id="cancel-dialog" class="header-btn">Cancelar</button>
+      </div>
+    </div>
+  </dialog>
 
-
-
-<div id="apps" style="margin-top:0px;;font-size:30px; background-image: linear-gradient(to right, rgb(39, 0, 0), rgb(5, 5, 5));">
-  <h1 class="AlzoTitle" style="margin: 0; color: white; font-weight: 500; font-size: 40px; margin-bottom: 20px; padding-top: 79px;">Monitor AlzoMX: El Monitor Publico pero mas Inteligente</h1>    
-  <p class="AlzoText" style="margin: 0; color: white; font-size: 15px; padding-bottom: 79px; text-align: justify;">⚠️ Recibe la Alerta Sísmica Oficial de México
-<br>
-    🌋 Alertas Meteorológicas y Volcánicas
-    <br>
-    🌎 Catálogo de sismos mundiales
-    <br>
-    🫰 ¡Gratis!</p>
-</div>
 <script>
 // Smooth scroll function 
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -329,48 +343,73 @@ function scrollFunction() {
     document.getElementById("logo").children[0].style.height = "45px";
   }
 }
-</script>
+
+const navLinks = document.querySelectorAll('#navbar a');
+
+navLinks.forEach(link => {
+  link.addEventListener('click', function () {
+    navLinks.forEach(l => l.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
 
 
-<dialog id="info-dialog" style="border: none; background: transparent; padding: 0;">
-  <div id="dialog-box" style="background-color: #111111; color: white; padding: 24px; border-radius: 12px; min-width: 300px; max-width: 500px; width: 100%; margin: auto;">
-      <h2 style="margin-top: 0; font-size: 22px; font-weight: 600; text-align: left; width: 100%; margin-left: 0;">Aviso importante</h2>
-      <hr>
-    <p style="margin: 20px 0 24px; white-space: pre-line;">Estás a punto de ser redirigido a Monitor AlzoMX. Este monitor está en fase de pruebas, por lo que puedes experimentar problemas de lentitud o fallas en la interfaz de usuario.
-
-      Cada usuario es responsable de verificar la información y asume la responsabilidad de las consecuencias que pueda causar si toma decisiones basadas en nuestros servicios y sitio web.
-    </p>
-    
-    <div class="button-container">
-      <button id="close-dialog" class="header-btn">Aceptar</button>
-      <button id="cancel-dialog" class="header-btn">Cancelar</button>
-    </div>
-  </div>
-</dialog>
-
-
-<script>
-  document.getElementById('monitor-link').addEventListener('click', function(e) {
-      e.preventDefault(); // Prevenir la navegación
-      document.getElementById('info-dialog').showModal(); // Mostrar el diálogo
+  document.querySelector('a[href="#inicio"]').addEventListener('click', function(e) {
+    e.preventDefault();
+    document.getElementById('inicio').scrollIntoView({ behavior: 'smooth' });
   });
 
-  // Mostrar el diálogo al hacer clic en "Aceptar"
-  closeBtn.addEventListener('click', () => {
-    dialogBox.classList.add('fade-out');
-    dialog.classList.add('hide-backdrop');
-    setTimeout(() => {
-      dialog.close();
-      dialogBox.classList.remove('fade-out');
-      dialog.classList.remove('hide-backdrop');
-    }, 200);
-  });
 
-  // Cerrar el diálogo al hacer clic en "Cancelar"
-  cancelBtn.addEventListener('click', () => {
+
+
+
+
+// Detectar el scroll para cambiar el "active" del navbar
+window.addEventListener('scroll', function() {
+    const inicioSection = document.getElementById('inicio');
+    const appsSection = document.getElementById('apps');
+
+    // Obtener la posición del scroll
+    const scrollPosition = window.scrollY;
+
+    // Si la sección "inicio" llega al top
+    if (scrollPosition >= inicioSection.offsetTop && scrollPosition < inicioSection.offsetTop + inicioSection.offsetHeight) {
+        document.querySelector('#navbar a.active').classList.remove('active');
+        document.querySelector('a[href="#inicio"]').classList.add('active');
+    }
+
+    // Si la sección "apps" llega al bottom
+    if (scrollPosition >= appsSection.offsetTop + appsSection.offsetHeight - window.innerHeight) {
+        document.querySelector('#navbar a.active').classList.remove('active');
+        document.querySelector('a[href="#apps"]').classList.add('active');
+    }
+});
+
+
+
+document.getElementById('monitor-link').addEventListener('click', function(e) {
+  e.preventDefault();
+  document.getElementById('info-dialog').showModal();
+});
+
+document.getElementById('close-dialog').addEventListener('click', () => {
+  const dialog = document.getElementById('info-dialog');
+  dialog.classList.add('hide-backdrop');
+  setTimeout(() => {
     dialog.close();
-  });
+    dialog.classList.remove('hide-backdrop');
+    window.location.href = 'AlzoMX5Monitor.html';
+  }, 100);
+});
+
+document.getElementById('cancel-dialog').addEventListener('click', () => {
+  document.getElementById('info-dialog').close();
+});
+
+
 </script>
+
+
 
 
 
