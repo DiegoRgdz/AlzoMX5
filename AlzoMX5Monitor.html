@@ -118,23 +118,23 @@
     }
 
     .magnitude-imperceptible {
-      color: #00bda4;
+      color: #008775;
     }
 
     .magnitude-leve {
-      color: #00c3ff;
+      color: #008ab4;
     }
 
     .magnitude-moderada {
-      color: #ffc400;
+      color: #c49000;
     }
 
     .magnitude-fuerte {
-      color: #ff5c33;
+      color: #b52400;
     }
 
     .magnitude-violento {
-      color: #e60073;
+      color: #b8005c;
     }
 
     strong {
@@ -343,23 +343,60 @@
         font-size: 14px;
         color: #888;
       }
+
+
+
+
+
+
+
     </style>
-    
+  <div class="user-container" style="display: flex; flex-direction: column; gap: 15px;">
     <div class="user-item">
-      <div class="divicon">
-        <i class="material-icons">account_circle</i>
-      </div>
-      <div class="user-details">
-        <div class="user-info">Bienvenido, Usuario de AlzoMX</div>
-        <div class="status">Sin actividad sísmica en este momento</div>
-      </div>
+        <div class="divicon">
+            <i class="material-icons">account_circle</i>
+        </div>
+        <div class="user-details">
+            <div class="user-info">Bienvenido, Usuario de AlzoMX</div>
+            <div class="status">Sin actividad sísmica en este momento</div>
+        </div>
     </div>
-    
+
+    <div style="background: linear-gradient(145deg, #1a1a1a, #1d1200); padding: 20px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.6); display: flex; gap: 16px; align-items: flex-start;">
+        <div style="flex-shrink: 0;">
+            <div style="background-color: #2b2b2b; padding: 12px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.5); width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;">
+                <i class="material-icons" style="font-size: 24px;">crisis_alert</i>
+            </div>
+        </div>
+        <div style="flex: 1;">
+            <div class="user-info">Última Alerta SASMEX</div>
+            <div class="status">Evento sísmico Moderado</div>
+  
+            <div class="descripcion" style="margin-top: 12px;">
+              El 14 de marzo de 2025 a las 21:19:46 hrs. (hora local) el SASMEX detectó un sismo inicialmente en 43 estaciones sismo sensoras, que generó un aviso de Alerta Sísmica a la Ciudad de México.</div>
+        </div>
+    </div>
+</div>
 
 
   </div>
+  
+
+
+
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background-color: #0e0e0e; color: #fff;">
+  <h2>Últimos Sismos mundiales</h2>
+  <div style="margin-left: auto;">
+    <button class="header-btn"><span class="material-icons">search</span></button>
+    <button class="header-btn"><span class="material-icons">tune</span></button>
+    <button class="header-btn"><span class="material-icons">menu_book</span></button>
+</div>
+</div>
+
+  
   <div id="scroll" class="eventos-scroll">
     <div style="margin-top: 15px;" id="list"></div>
+
   </div>
 </div>
     <div id="map"></div>
