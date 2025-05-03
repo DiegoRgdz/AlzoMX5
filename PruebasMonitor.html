@@ -11,12 +11,14 @@
     #map { position:absolute; top:0; bottom:0; width:100%; z-index:0; }
     #pulseCanvas { position:absolute; top:0; left:0; width:100%; height:100%; z-index:1; pointer-events:none; }
     #timeDisplay { position:absolute; top:10px; left:10px; z-index:2; color:white; font-size:16px; background-color: rgba(0, 0, 0, 0.5); padding: 5px; white-space: pre-line; }
+    #statusDisplay { position:absolute; bottom:10px; left:10px; z-index:2; color:white; font-size:16px; background-color: rgba(0, 0, 0, 0.5); padding: 5px; }
   </style>
 </head>
 <body>
   <div id="map"></div>
   <canvas id="pulseCanvas"></canvas>
   <div id="timeDisplay">ESPERANDO ACTIVIDAD SÍSMICA</div>
+  <div id="statusDisplay">Estado: ---</div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -27,7 +29,7 @@
       authDomain: "alzomx5.firebaseapp.com",
       databaseURL: "https://alzomx5-default-rtdb.firebaseio.com",
       projectId: "alzomx5",
-      storageBucket: "alzomx5.firebasestorage.app",
+      storageBucket: "alzomx5.appspot.com",
       messagingSenderId: "770732335235",
       appId: "1:770732335235:web:992502eccd09a5470e3bb6",
       measurementId: "G-4MY8ZPLVJ4"
@@ -35,12 +37,11 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    const statusRef = ref(db, "EventoMonitorPublico/StatusEventoEnVigor");
+    const statusRef = ref(db, "StatusAlertaPublica");
 
     let opacityP = 0.8;
     let opacityS = 0.8;
 
-    // Variables configurables
     let epicenterLat = 16.86361;
     let epicenterLon = -99.8825;
     let epicenterName = "Costa de Guerrero";
@@ -72,6 +73,10 @@
       Toluca: [-99.6752, 19.2826]
     };
 
+    // Crear objeto de sonido
+    const seismicSound = new Audio('https://alzomx.github.io/AlzoMX5/Alerta.mp3'); // Reemplaza con la ruta de tu archivo de sonido
+    seismicSound.loop = true;  // Habilitar el loop
+
     function resizeCanvas() {
       canvas.width = map.getContainer().clientWidth;
       canvas.height = map.getContainer().clientHeight;
@@ -80,7 +85,7 @@
     window.addEventListener('resize', resizeCanvas);
     map.on('resize', resizeCanvas);
     resizeCanvas();
-
+ 
     map.getResolution = function() {
       return 40075016.686 / (512 * Math.pow(2, this.getZoom()));
     };
@@ -103,13 +108,15 @@
     }
 
     function draw(timestamp) {
-      if (!startTime) return;
+      if (!startTime) {
+        animationFrame = requestAnimationFrame(draw);
+        return;
+      }
+
       const t = (timestamp - startTime) / 1000;
 
       if (t > maxTime) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        document.getElementById('timeDisplay').innerText = 'ESPERANDO ACTIVIDAD SÍSMICA';
-        startTime = null;
+        stopSeismicEvent();
         return;
       }
 
@@ -150,19 +157,34 @@ ETA (segundos restantes para la onda S):\n`;
       animationFrame = requestAnimationFrame(draw);
     }
 
-    // Escuchar cambios en la base de datos y controlar el evento sísmico
+    function startSeismicEvent() {
+      if (startTime) return; // Evita reiniciar si ya está en ejecución
+      startTime = performance.now();
+      map.jumpTo({ center: map.getCenter() }); // fuerza interacción
+      map.resize();
+      seismicSound.play(); // Reproducir el sonido
+      requestAnimationFrame(draw);
+    }
+
+    function stopSeismicEvent() {
+      cancelAnimationFrame(animationFrame);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      document.getElementById('timeDisplay').innerText = 'ESPERANDO ACTIVIDAD SÍSMICA';
+      startTime = null;
+      seismicSound.pause(); // Detener el sonido
+      seismicSound.currentTime = 0; // Resetear el sonido al inicio
+    }
+
     onValue(statusRef, (snapshot) => {
       const value = snapshot.val();
-      if (value === true && !startTime) {
-        startTime = performance.now();
-        map.resize(); // Fuerza el redibujo
-        requestAnimationFrame(draw);
-      } else if (value === false && startTime) {
-        // Detener la animación si el evento es "false"
-        cancelAnimationFrame(animationFrame);
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        document.getElementById('timeDisplay').innerText = 'ESPERANDO ACTIVIDAD SÍSMICA';
-        startTime = null;
+      document.getElementById('statusDisplay').innerText = `Estado: ${value}`;
+      
+      // Detener y reiniciar el evento sísmico solo si el valor cambia a true
+      if (value === "true" && !startTime) {
+        stopSeismicEvent(); // Detener el evento si está en curso
+        startSeismicEvent(); // Reiniciar el evento
+      } else if (value === "false" && startTime) {
+        stopSeismicEvent(); // Detener el evento si cambia a false
       }
     });
   </script>
