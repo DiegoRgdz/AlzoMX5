@@ -1,56 +1,540 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <title>Ondas SASMEX</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="https://api.mapbox.com/mapbox-gl-js/v2.11.0/mapbox-gl.css" rel="stylesheet" />
-  <script src="https://api.mapbox.com/mapbox-gl-js/v2.11.0/mapbox-gl.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AlzoMX: Monitor </title>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet" />
   <style>
-    body { margin:0; padding:0; overflow:hidden; }
-    #map { position:absolute; top:0; bottom:0; width:100%; z-index:0; }
-    #pulseCanvas { position:absolute; top:0; left:0; width:100%; height:100%; z-index:1; pointer-events:none; }
-    #timeDisplay { position:absolute; top:10px; left:10px; z-index:2; color:white; font-size:16px; background-color: rgba(0, 0, 0, 0.5); padding: 5px; white-space: pre-line; }
-    #statusDisplay { position:absolute; bottom:10px; left:10px; z-index:2; color:white; font-size:16px; background-color: rgba(0, 0, 0, 0.5); padding: 5px; }
+    * {
+      box-sizing: border-box;
+    }
+  
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #0a0a0a;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+  
+    html, body {
+      width: 100%;
+      height: 100%;
+    }
+
+    #header {
+      background-color: #141414;
+      padding: 16px 24px;
+      font-size: 24px;
+      font-weight: 600;
+      z-index: 1;
+      position: sticky;
+      top: 0;
+      width: 100%;
+    }
+
+    #content {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      width: 100vw;
+      height: calc(100vh - 72px); /* Ajusta según el alto del header */
+    }
+
+    #map {
+  flex: 2;
+  height: 100%; /* Usa 100% del espacio restante */
+  width: 100%;
+}
+  
+    #lista-eventos {
+      flex: 1;
+      background-color: #0e0e0e;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .eventos-scroll {
+      overflow-y: auto;
+      padding: 0 20px 20px;
+      flex: 1;
+      scroll-behavior: smooth;
+    }
+
+    .eventos-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    h2 {
+      margin: 20px 20px 10px;
+      font-size: 20px;
+      font-weight: 600;
+      border-bottom: 2px solid #333;
+      padding-bottom: 10px;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    h2.hidden {
+      transform: translateY(-20px);
+      opacity: 0;
+    }
+
+    .earthquake-item {
+      display: flex;
+      margin-bottom: 12px;
+      background-color: #121212;
+      border-radius: 8px;
+      padding: 12px;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      transition: transform 0.2s ease;
+      cursor: pointer;
+    }
+
+    .earthquake-item:hover {
+      transform: scale(1.02);
+    }
+
+    .magnitude {
+      font-size: 22px;
+      font-weight: bold;
+      min-width: 60px;
+      min-height: 60px;
+      line-height: 60px;
+      text-align: center;
+      border-radius: 50%;
+      margin-right: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #222;
+    }
+
+    .magnitude-imperceptible {
+      color: #008775;
+    }
+
+    .magnitude-leve {
+      color: #008ab4;
+    }
+
+    .magnitude-moderada {
+      color: #c49000;
+    }
+
+    .magnitude-fuerte {
+      color: #b52400;
+    }
+
+    .magnitude-violento {
+      color: #b8005c;
+    }
+
+    strong {
+      color: #ccc;
+    }
+
+    .header-btn {
+      background-color: #1b1b1b;
+      border: 2px solid transparent;
+      color: #fff;
+      cursor: pointer;
+      padding: 10px 10px;
+      border-radius: 8px;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header-btn::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      transition: left 0.3s ease;
+      z-index: 0;
+    }
+
+    .header-btn:hover::after {
+      left: 0;
+    }
+
+    .header-btn:hover {
+      border-color: #444;
+      background-color: #262626;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    .header-btn:active {
+      transform: scale(0.96);
+      box-shadow: none;
+    }
+
+    .live-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background-color: red;
+      box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7);
+      }
+      70% {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 10px rgba(255, 0, 0, 0);
+      }
+      100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
+      }
+    }
+
+    #locate-btn {
+      position: absolute;
+      right: 20px;
+      bottom: 30px;
+      width: 56px;
+      height: 56px;
+      background-color: #1e1e1e;
+      border-radius: 50%;
+      border: none;
+      color: #bbbbbb;
+      font-size: 28px;
+      cursor: pointer;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    #locate-btn:hover {
+      background-color: #2a2a2a;
+      transform: scale(1.05);
+    }
+
+    #close-dialog {
+    background-color: #161616; /* Fondo inicial más oscuro */
+    border: 2px solid transparent;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 10px 10px;
+    border-radius: 8px;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  #close-dialog::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    transition: left 0.3s ease;
+    z-index: 0;
+  }
+
+  #close-dialog:hover::after {
+    left: 0;
+  }
+
+  #close-dialog:hover {
+    border-color: #444;
+    background-color: #1e1e1e; /* Fondo más oscuro al hacer hover */
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  }
+
+  #close-dialog:active {
+    transform: scale(0.96);
+    box-shadow: none;
+    background-color: #333; /* Fondo más oscuro al hacer clic */
+  }
   </style>
 </head>
 <body>
-  <div id="map"></div>
-  <canvas id="pulseCanvas"></canvas>
-  <div id="timeDisplay">ESPERANDO ACTIVIDAD SÍSMICA</div>
-  <div id="statusDisplay">Estado: ---</div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  <button id="locate-btn">
+    <span class="material-icons">my_location</span>
+  </button>
+  <div id="header">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <div style="display: flex; align-items: center; gap: 18px;">
+        <div class="live-dot"></div>
+        <div style="font-size: 20px; font-weight: 600;">Monitor AlzoMX (Version Beta)</div>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button class="header-btn"><span class="material-icons">home</span></button>
+        <button class="header-btn"><span class="material-icons">map</span></button>
+        <button class="header-btn"><span class="material-icons">info</span></button>
+      </div>
+    </div>
+  </div>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCucG6hcLfFVdZQkY91jKmQ-uwvuvaI4ac",
-      authDomain: "alzomx5.firebaseapp.com",
-      databaseURL: "https://alzomx5-default-rtdb.firebaseio.com",
-      projectId: "alzomx5",
-      storageBucket: "alzomx5.appspot.com",
-      messagingSenderId: "770732335235",
-      appId: "1:770732335235:web:992502eccd09a5470e3bb6",
-      measurementId: "G-4MY8ZPLVJ4"
+  <div id="content">
+    <div id="lista-eventos">
+  <div style="flex: 0.4;      background-color: #0e0e0e; padding: 16px; border-bottom: 1px solid #333;">
+
+    <style>
+      .user-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 18px 24px;
+        border-radius: 18px;
+        background: linear-gradient(135deg, #101010, #191919);
+        color: #d0d0d0;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+      }
+    
+      .divicon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background-color: #1a1a1a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.03);
+      }
+    
+      .divicon i {
+        font-size: 34px;
+      }
+    
+      .user-details {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+    
+      .user-info {
+        font-size: 20px;
+        font-weight: 600;
+        color: #f5f5f5;
+      }
+    
+      .status {
+        font-size: 14px;
+        color: #888;
+      }
+
+
+      .user-server-item
+      {
+       position: absolute;
+      right: 20px;
+      bottom: 30px;
+      width: 56px;
+      height: 56px;
+      background-color: #1e1e1e;
+      border-radius: 50%;
+      border: none;
+      color: #bbbbbb;
+      font-size: 28px;
+      cursor: pointer;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+      transition: background 0.2s, transform 0.2s;
+      }
+
+
+
+
+    </style>
+  <div class="user-container" style="display: flex; flex-direction: column; gap: 15px;">
+    <div class="user-item">
+        <div class="divicon">
+            <i class="material-icons">account_circle</i>
+        </div>
+        <div class="user-details">
+            <div class="user-info">Bienvenido, Usuario de AlzoMX</div>
+            <div class="status">Sin actividad sísmica en este momento</div>
+            
+        </div>
+        
+    </div>
+    <div class="user-info-container" style="display: flex; gap: 15px; flex-wrap: wrap;">
+
+
+      <button class="header-btn" style=" font-family: 'Poppins', sans-serif; box-shadow: 0 8px 24px rgba(0,0,0,0.6); display: flex; align-items: center; padding: 12px 18px; border-radius: 16px; background-color: #1a1a1a; color: #ffffff; flex: 1; min-width: 180px; border: none; cursor: pointer;">
+        <i class="material-icons" style="margin-right: 8px; color: #0081c6;">wifi</i>
+        Conexión Wi-Fi
+      </button>
+      <button class="header-btn" style="font-family: 'Poppins', sans-serif; box-shadow: 0 8px 24px rgba(0,0,0,0.6); display: flex; align-items: center; padding: 12px 18px; border-radius: 16px; background-color: #1a1a1a; color: #ffffff; flex: 1; min-width: 180px; border: none; cursor: pointer;">
+        <i class="material-icons" style="margin-right: 8px; color: #62b700;">sync</i>
+        Conexión con Servidor
+      </button>
+
+  </div>
+
+
+
+
+
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <div style="font-family: 'Poppins', sans-serif; background: #660000; border-radius: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.7); padding: 16px; display: flex; gap: 16px; align-items: center;">
+    <div style="flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+      <svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="40" cy="40" r="36" stroke="#8a0000" stroke-width="4" fill="#660000"/>
+        <circle id="progress" cx="40" cy="40" r="36" stroke="#b30000" stroke-width="4" fill="none"
+                stroke-dasharray="226" stroke-dashoffset="0" transform="rotate(-90 40 40)"/>
+        <text id="counter" x="40" y="45" text-anchor="middle" fill="white" font-size="20" font-weight="bold">50s</text>
+      </svg>
+      <div style="color: #fff; font-size: 14px; margin-top: 6px;">ETA</div>
+    </div>
+  
+    <div style="flex: 1; color: #ffffff; display: flex; flex-direction: column; gap: 3px;">
+      <div style="font-size: 22px; font-weight: 700; text-align: left; color: #fff;">Sismo en progreso: FUERTE</div>
+      <div style="font-size: 14px; color: #b0b0b0; text-align: left; margin-bottom: 10px;">Emisor que confirmó sismo: SASMEX</div>
+  
+      <div style="background: #800000; padding: 16px; border-radius: 12px; box-shadow: inset 0 0 12px rgba(0,0,0,0.4);">
+        <div style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #f5f5f5;">
+          <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.3); padding-bottom: 6px;">
+            <span style="font-weight: 600;">Posible Epicentro:</span>
+            <span>Pinotepa Nacional, Oaxaca</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.3); padding-bottom: 6px;">
+            <span style="font-weight: 600;">Intensidad:</span>
+            <span>VIOLENTO</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.3); padding-bottom: 6px;">
+            <span style="font-weight: 600;">Fecha y hora:</span>
+            <span>01/01/2025 00:00:00</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding-bottom: 6px;">
+            <span style="font-weight: 600;">Distancia:</span>
+            <span>380 km de CDMX</span>
+          </div>
+        </div>
+      </div>
+  
+      <div style="background-color: #292929; border-radius: 8px; padding: 8px; text-align: center; font-size: 12px; color: #bbb; font-weight: 500; margin-top: 8px;">
+        Información de IA, sujeta a validación. Verifica fuentes confiables para obtener datos precisos.
+      </div>
+    </div>
+  </div>
+  
+  
+</div>
+
+
+  </div>
+  
+  <style>
+    @keyframes countdown {
+      from { stroke-dashoffset: 0; }
+      to { stroke-dashoffset: 176; }
+    }
+  </style>
+  
+  <script>
+    let seconds = 50; // Cambia libremente
+    const dashArray = 176;
+    const circle = document.getElementById("progress");
+    const counter = document.getElementById("counter");
+  
+    // Aplica animación dinámica
+    circle.style.animation = `countdown ${seconds}s linear forwards`;
+  
+    let remaining = seconds;
+    const interval = setInterval(() => {
+      remaining--;
+      counter.textContent = remaining + "s";
+      if (remaining <= 0) {
+        clearInterval(interval);
+        counter.textContent = "0s";
+      }
+    }, 1000);
+  </script>
+  
+
+
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background-color: #0e0e0e; color: #fff;">
+  <h2>Últimos Sismos mundiales</h2>
+  <div style="margin-left: auto;">
+    <button class="header-btn"><span class="material-icons">search</span></button>
+    <button class="header-btn"><span class="material-icons">tune</span></button>
+    <button class="header-btn"><span class="material-icons">menu_book</span></button>
+</div>
+</div>
+
+  
+  <div id="scroll" class="eventos-scroll">
+    <div style="margin-top: 15px;" id="list"></div>
+
+  </div>
+</div>
+    <div id="map"></div>
+  </div>
+
+  <script>
+    let userMarker = null;
+    let showingLocation = false;
+
+    document.getElementById('locate-btn').addEventListener('click', () => {
+      if (!showingLocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+          const { latitude, longitude } = pos.coords;
+
+          if (userMarker) userMarker.remove();
+
+          userMarker = new mapboxgl.Marker({ color: '#00ff88' })
+            .setLngLat([longitude, latitude])
+            .addTo(map);
+
+          map.flyTo({
+            center: [longitude, latitude],
+            zoom: 6,
+            speed: 1.2,
+            curve: 1,
+            essential: true
+          });
+
+          showingLocation = true;
+        });
+      } else {
+        if (userMarker) userMarker.remove();
+        userMarker = null;
+        showingLocation = false;
+      }
+    });
+
+    const getAfectacion = (mag) => {
+      if (mag >= 7.5) return 'Crítica';
+      if (mag >= 6.5) return 'Importante';
+      if (mag >= 5.5) return 'Muy leve';
+      if (mag >= 4.5) return 'Ninguna';
+      return 'Sin Afectación';
     };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const statusRef = ref(db, "StatusAlertaPublica");
-
-    let opacityP = 0.8;
-    let opacityS = 0.8;
-
-    let epicenterLat = 16.86361;
-    let epicenterLon = -99.8825;
-    let epicenterName = "Costa de Guerrero";
-    let intensidad = "Alta";
-    let riesgo = "Severo";
-
-    const epicenter = [epicenterLon, epicenterLat];
-    const canvas = document.getElementById('pulseCanvas');
-    const ctx = canvas.getContext('2d');
 
     mapboxgl.accessToken = 'pk.eyJ1Ijoic3NteCIsImEiOiJjbTlqYXNybmswOWFlMmpxNHdmc3RjbWg1In0.14A97LZ66g7nsoA-NA_9Fw';
     const map = new mapboxgl.Map({
@@ -61,132 +545,223 @@
       attributionControl: false
     });
 
-    const cities = {
-      Oaxaca: [-96.721, 17.073],
-      CDMX: [-99.1332, 19.4326],
-      Acapulco: [-99.9334, 16.853],
-      Chilpancingo: [-99.4591, 17.5525],
-      Morelia: [-101.1924, 19.7005],
-      Colima: [-103.7257, 19.2439],
-      Puebla: [-98.2019, 19.0413],
-      Cuernavaca: [-99.2304, 18.9249],
-      Toluca: [-99.6752, 19.2826]
-    };
+    map.addControl(new mapboxgl.AttributionControl({
+      customAttribution: 'AlzoMX'
+    }));
 
-    // Crear objeto de sonido
-    const seismicSound = new Audio('https://alzomx.github.io/AlzoMX5/Alerta.mp3'); // Reemplaza con la ruta de tu archivo de sonido
-    seismicSound.loop = true;  // Habilitar el loop
+    map.on('load', () => {
+      map.addSource('plates', {
+        type: 'geojson',
+        data: 'https://raw.githubusercontent.com/AlzoMX/AlzoMX/main/plates.json'
+      });
 
-    function resizeCanvas() {
-      canvas.width = map.getContainer().clientWidth;
-      canvas.height = map.getContainer().clientHeight;
-    }
+      map.addLayer({
+        id: 'plates',
+        type: 'line',
+        source: 'plates',
+        paint: {
+          'line-color': '#FF9F33',
+          'line-width': 4
+        }
+      });
 
-    window.addEventListener('resize', resizeCanvas);
-    map.on('resize', resizeCanvas);
-    resizeCanvas();
- 
-    map.getResolution = function() {
-      return 40075016.686 / (512 * Math.pow(2, this.getZoom()));
-    };
+      fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson')
+        .then(res => res.json())
+        .then(data => {
+          map.addSource('earthquakes', {
+            type: 'geojson',
+            data: data
+          });
 
-    let startTime = null;
-    const speedP = 7.5;
-    const speedS = 4.5;
-    const maxTime = 150;
-    let animationFrame = null;
+          map.addLayer({
+            id: 'earthquake-circles',
+            type: 'circle',
+            source: 'earthquakes',
+            paint: {
+              'circle-color': [
+                'interpolate',
+                ['linear'],
+                ['get', 'mag'],
+                4.5, '#00c3ff',
+                5.5, '#ffc400',
+                6.5, '#ff5c33',
+                7.5, '#e60073'
+              ],
+              'circle-radius': [
+                'interpolate',
+                ['linear'],
+                ['get', 'mag'],
+                4.5, 20,
+                5.5, 27,
+                6.5, 37,
+                7.5, 45
+              ],
+              'circle-opacity': 0.5
+            }
+          });
 
-    function calculateDistance(lat1, lon1, lat2, lon2) {
-      const R = 6371;
-      const dLat = (lat2 - lat1) * Math.PI / 180;
-      const dLon = (lon2 - lon1) * Math.PI / 180;
-      const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                Math.sin(dLon / 2) * Math.sin(dLon / 2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      return R * c;
-    }
+          map.on('click', 'earthquake-circles', (e) => {
+            const coordinates = e.features[0].geometry.coordinates.slice();
+            map.flyTo({
+              center: [coordinates[0], coordinates[1]],
+              zoom: 7,
+              speed: 1.2,
+              curve: 1,
+              essential: true
+            });
+          });
 
-    function draw(timestamp) {
-      if (!startTime) {
-        animationFrame = requestAnimationFrame(draw);
-        return;
-      }
+          data.features.forEach(eq => {
+            const [lng, lat] = eq.geometry.coordinates;
+            const mag = eq.properties.mag;
+            const afectacion = getAfectacion(mag);
+            const place = eq.properties.place;
+            const time = new Date(eq.properties.time).toLocaleString();
+            const depth = eq.geometry.coordinates[2].toFixed(1);
 
-      const t = (timestamp - startTime) / 1000;
+            let magnitudeClass = 'magnitude-imperceptible';
+            if (mag >= 4.5 && mag < 5.5) magnitudeClass = 'magnitude-leve';
+            else if (mag >= 5.5 && mag < 6.5) magnitudeClass = 'magnitude-moderada';
+            else if (mag >= 6.5 && mag < 7.5) magnitudeClass = 'magnitude-fuerte';
+            else if (mag >= 7.5) magnitudeClass = 'magnitude-violento';
 
-      if (t > maxTime) {
-        stopSeismicEvent();
-        return;
-      }
+            const div = document.createElement('div');
+            div.className = 'earthquake-item';
+            div.innerHTML = `
+              <div class="magnitude ${magnitudeClass}">${mag.toFixed(1)}</div>
+              <div>
+                <div style="font-size: 18px; font-weight: 600;">${place}</div>
+                <strong>Fecha y Hora:</strong> ${time} (UTC)
+                
+                                <strong>Profundidad:</strong> ${depth} km
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const center = map.project(epicenter);
-      const metersP = speedP * t * 1000;
-      const metersS = speedS * t * 1000;
-      const res = map.getResolution();
-
-      ctx.beginPath();
-      ctx.arc(center.x, center.y, metersP / res, 0, 2 * Math.PI);
-      ctx.strokeStyle = `rgba(227, 0, 165, ${opacityP})`;
-      ctx.lineWidth = 4;
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.arc(center.x, center.y, metersS / res, 0, 2 * Math.PI);
-      ctx.strokeStyle = `rgba(255, 155, 0, ${opacityS})`;
-      ctx.lineWidth = 4;
-      ctx.stroke();
-
-      let timeDisplay = `INTENSIDAD: ${intensidad}
-EPICENTRO: ${epicenterName}
-Lat: ${epicenterLat}, Lon: ${epicenterLon}
-RIESGO: ${riesgo}
-
-ETA (segundos restantes para la onda S):\n`;
-
-      for (const city in cities) {
-        const [lon, lat] = cities[city];
-        const distance = calculateDistance(epicenterLat, epicenterLon, lat, lon);
-        const timeS = distance / speedS;
-        const timeRemaining = Math.max(timeS - t, 0).toFixed(2);
-        timeDisplay += `${city}: ${timeRemaining}s\n`;
-      }
-
-      document.getElementById('timeDisplay').innerText = timeDisplay;
-      animationFrame = requestAnimationFrame(draw);
-    }
-
-    function startSeismicEvent() {
-      if (startTime) return; // Evita reiniciar si ya está en ejecución
-      startTime = performance.now();
-      map.jumpTo({ center: map.getCenter() }); // fuerza interacción
-      map.resize();
-      seismicSound.play(); // Reproducir el sonido
-      requestAnimationFrame(draw);
-    }
-
-    function stopSeismicEvent() {
-      cancelAnimationFrame(animationFrame);
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      document.getElementById('timeDisplay').innerText = 'ESPERANDO ACTIVIDAD SÍSMICA';
-      startTime = null;
-      seismicSound.pause(); // Detener el sonido
-      seismicSound.currentTime = 0; // Resetear el sonido al inicio
-    }
-
-    onValue(statusRef, (snapshot) => {
-      const value = snapshot.val();
-      document.getElementById('statusDisplay').innerText = `Estado: ${value}`;
-      
-      // Detener y reiniciar el evento sísmico solo si el valor cambia a true
-      if (value === "true" && !startTime) {
-        stopSeismicEvent(); // Detener el evento si está en curso
-        startSeismicEvent(); // Reiniciar el evento
-      } else if (value === "false" && startTime) {
-        stopSeismicEvent(); // Detener el evento si cambia a false
-      }
+                
+                 <strong>Riesgo:</strong> ${afectacion}
+              </div>
+            `;
+            div.addEventListener('click', () => {
+              map.flyTo({
+                center: [lng, lat],
+                zoom: 7,
+                speed: 1.2,
+                curve: 1,
+                essential: true
+              });
+            });
+            document.getElementById('list').appendChild(div);
+          });
+        });
     });
+
+
   </script>
+<dialog id="info-dialog" style="border: none; background: transparent; padding: 0;">
+  <div id="dialog-box" style="background-color: #111111; color: white; padding: 24px; border-radius: 12px; min-width: 300px; max-width: 500px; width: 100%; margin: auto;">
+    <h2 style="margin-top: 0; font-size: 22px; text-align: left; width: 100%; margin-left: 0;">Información y Créditos</h2>
+    <p style="margin: 20px 0 24px; white-space: pre-line;">Este sitio web no es un servicio de alerta sísmica ni pretende sustituirlo. Ofrece información complementaria sobre avisos y actividad sísmica en México y el mundo (solo en zonas con cobertura). no garantiza la precisión de la información. 
+      
+      No se hace responsable de daños derivados de decisiones basadas en los datos proporcionados. Los usuarios son responsables de verificar la exactitud de la información. Los retrasos pueden ocurrir debido al tráfico de la red de internet.
+
+Créditos: Información proporcionada por USGS, Mas información en: https://earthquake.usgs.gov/fdsnws/event/1/
+
+Creador y Desarrollador: Rodriguez Garcia de Leon Diego Ganesha
+    </p>
+    
+    <button id="close-dialog" class="header-btn">Aceptar</button>
+  </div>
+</dialog>
+
+
+
+
+
+
+
+
+
+
+
+
+<dialog id="wifi-dialog" style="border: none; background: transparent; padding: 0;">
+  <div id="dialog-box" style="background-color: #111111; color: white; padding: 24px; border-radius: 12px; min-width: 300px; max-width: 500px; width: 100%; margin: auto;">
+    <h2 style="margin-top: 0; font-size: 22px; text-align: left; width: 100%; margin-left: 0;">Conexión a Internet</h2>
+    <p style="margin: 20px 0 24px; white-space: pre-line;">Usted está conectado a Internet. Es importante mantener una conexión estable para recibir información de la base de datos y eventos sísmicos en tiempo real mediante el Mapa en Vivo.
+    
+      Este sitio no se hace responsable por retrasos en la red o por la información que pueda mostrar el monitor en vivo.
+    </p>
+    
+    <button id="close-dialog" class="header-btn">Aceptar</button>
+  </div>
+</dialog>
+
+
+<style>
+  dialog::backdrop {
+    background: rgba(0, 0, 0, 0.6);
+    transition: background 0.2s ease;
+  }
+
+  .hide-backdrop::backdrop {
+    background: rgba(0, 0, 0, 0);
+  }
+
+  #dialog-box {
+    opacity: 0;
+    transform: scale(0.98);
+    animation: fadeIn 0.2s ease forwards;
+  }
+
+  @keyframes fadeIn {
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .fade-out {
+    animation: fadeOut 0.2s ease forwards;
+  }
+
+  @keyframes fadeOut {
+    to {
+      opacity: 0;
+      transform: scale(0.98);
+    }
+  }
+</style>
+
+
+
+<script>
+  const dialog = document.getElementById('info-dialog');
+  const dialogBox = document.getElementById('dialog-box');
+  const closeBtn = document.getElementById('close-dialog');
+
+  document.querySelectorAll('.header-btn .material-icons').forEach(icon => {
+    if (icon.textContent === 'info') {
+      icon.parentElement.addEventListener('click', () => {
+        dialog.showModal();
+      });
+    }
+  });
+
+  closeBtn.addEventListener('click', () => {
+    dialogBox.classList.add('fade-out');
+    dialog.classList.add('hide-backdrop');
+    setTimeout(() => {
+      dialog.close();
+      dialogBox.classList.remove('fade-out');
+      dialog.classList.remove('hide-backdrop');
+    }, 200);
+  });
+</script>
+
+<script>
+  document.getElementById("wifiButton").addEventListener("click", function() {
+    document.getElementById("wifiDialog").showModal();
+  });
+</script>
+
+
 </body>
 </html>
