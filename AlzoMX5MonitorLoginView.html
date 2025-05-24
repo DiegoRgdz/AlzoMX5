@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <meta name="theme-color" content="#000000" />
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&display=swap" rel="stylesheet">
 
@@ -13,10 +16,17 @@
       box-sizing: border-box;
     }
 
+    html, body {
+  height: 100%;
+  min-height: 100%;
+  background-color: black;
+  overscroll-behavior: none;
+}
+
     body {
       margin: 0;
   font-family: 'Poppins', sans-serif;
-      height: 100vh;
+  height: 100%;
       background: 
         linear-gradient(to right, #000000, rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.5)),
         url('https://raw.githubusercontent.com/DiegoRgdz/AlzoMX5/refs/heads/main/Captura%20de%20pantalla%202025-05-24%20095102.png') no-repeat center center fixed;
@@ -26,6 +36,8 @@
       justify-content: flex-start;
       color: #e0e0e0;
       padding-left: 80px;
+        min-height: 100%;;
+  overscroll-behavior: none;
     }
 
     .login-content {
@@ -415,7 +427,7 @@ hr {
       );
 
       setTimeout(() => {
-        window.location.href = "AlzoMXMonitorView";
+        window.location.href = "AlzoMXMonitorView.html";
       }, 1500); // Da tiempo al usuario para leer el mensaje
     })
     .catch((error) => {
