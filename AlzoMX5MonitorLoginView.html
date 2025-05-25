@@ -5,12 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <meta name="theme-color" content="#000000" />
+    <title>Ingreso al sitio | AlzoMX</title>
+
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&display=swap" rel="stylesheet">
 
-  <title>Ingreso al Sitio</title>
+
   <style>
     * {
       box-sizing: border-box;
@@ -420,26 +422,23 @@ hr {
     googleButton.addEventListener("click", () => {
  auth.signInWithPopup(provider)
     .then((result) => {
-      // Mostrar mensaje antes de redirigir
-      showDialog(
-        "Inicio de sesión exitoso",
-        "En los proximos segundos sera redigirido al Monitor sismico, no cierre esta pestaña."
-      );
+     
+    
 
       setTimeout(() => {
         window.location.href = "AlzoMX5MonitorView.html";
-      }, 1500); // Da tiempo al usuario para leer el mensaje
+      }, 500); // Da tiempo al usuario para leer el mensaje
     })
     .catch((error) => {
       if (error.code === "auth/user-disabled") {
         showDialog(
-          "Error al ingresar: Cuenta deshabilitada",
-          "Su cuenta ha sido inhabilitada por anomalías en su comportamiento. Si cree que esto es un error, comuníquese con soporte técnico."
+          "Error: Cuenta deshabilitada",
+          "Su cuenta se ha inhabilitado por anomalías en su comportamiento. Si considera que es un error, contacte al soporte de AlzoMX para iniciar una Apelacion."
         );
       } else {
         showDialog(
-          "Error al ingresar: Error de autenticación",
-          "Ocurrió un error al intentar iniciar sesión con tu cuenta de Google. Si el problema persiste, contacta al soporte de AlzoMX."
+          "Error: Error de autenticación",
+          "Ocurrió un error al intentar iniciar sesión con su cuenta de Google. Si el problema persiste, contacte al soporte de AlzoMX."
         );
       }
         });
