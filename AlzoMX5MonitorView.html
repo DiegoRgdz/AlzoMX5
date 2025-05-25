@@ -724,7 +724,8 @@ onSnapshot(docStatusRef, (StatusSnap) => {
         const { displayName, email, photoURL, uid } = user;
 
         userDiv.textContent = `Bienvenido, ${displayName}  `;
-      } else {
+      } else {        window.location.href = "AlzoMX5MonitorLoginView.html"; // Cambia a tu archivo de login
+
       }
     });
   </script>
