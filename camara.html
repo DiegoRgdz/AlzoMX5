@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verificación de Cámara</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #ffffff;
+      color: #333;
+      margin: 0;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+    }
+
+    video {
+      width: 320px;
+      height: 240px;
+      background: #000;
+      border-radius: 10px;
+      border: 2px solid #ccc;
+      margin-bottom: 1rem;
+    }
+
+    .alerta {
+      background: #fff3cd;
+      border: 1px solid #ffeeba;
+      padding: 1rem;
+      border-radius: 8px;
+      color: #856404;
+      margin-top: 1rem;
+      width: 320px;
+      text-align: left;
+    }
+
+    .contador {
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Verificación de cámara</h1>
+  <video id="video" autoplay playsinline muted></video>
+  <div class="alerta" id="alerta" style="display: none;">
+    ⚠️ Cámara desactivada. Advertencias: <span class="contador" id="contador">0</span>
+  </div>
+
+  <script>
+    const video = document.getElementById('video');
+    const alerta = document.getElementById('alerta');
+    const contadorSpan = document.getElementById('contador');
+    let advertencias = 0;
+    let streamActivo = false;
+
+    async function iniciarCamara() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user' }, // cámara frontal
+          audio: false
+        });
+        video.srcObject = stream;
+        streamActivo = true;
+
+        // Escuchar si el stream se interrumpe
+        stream.getVideoTracks()[0].addEventListener('ended', () => {
+          manejarDesconexion();
+        });
+
+        // Verificar periódicamente si el stream sigue activo
+        setInterval(() => {
+          const tracks = video.srcObject?.getVideoTracks();
+          if (!tracks || tracks.length === 0 || tracks[0].readyState !== 'live') {
+            manejarDesconexion();
+          }
+        }, 2000);
+
+      } catch (err) {
+        console.error('Error al acceder a la cámara:', err);
+        manejarDesconexion();
+      }
+    }
+
+    function manejarDesconexion() {
+      if (streamActivo) {
+        advertencias++;
+        contadorSpan.textContent = advertencias;
+        alerta.style.display = 'block';
+        streamActivo = false;
+      }
+    }
+
+    iniciarCamara();
+  </script>
+</body>
+</html>
